@@ -40,7 +40,6 @@ def get_result():
 @app.route('/api/task', methods=['POST'])
 def input_predict_text():
     # print(request)
-    title = request.form['title']
     file = request.files['file']
     textLines = []
     labels = []
@@ -60,6 +59,7 @@ def input_predict_text():
         
         with open(os.path.join(app.config['UPLOAD_FOLDER'], newFileName), "r") as f:
             content = f.readlines()
+            id = 0
             for line in content:
                 # sentences.append(Sentence(line))
                 sentence = Sentence(line)
@@ -68,7 +68,8 @@ def input_predict_text():
                 # textLines.append(text)
                 label = sentence.labels[0]
                 # labels.append(label.value)
-                prediction = {'title': text, 'tag': label.value}
+                id = id+1
+                prediction = {'ID': id, 'title': text, 'tag': label.value}
                 result.append(prediction)
 
     # sentence = Sentence(title)
