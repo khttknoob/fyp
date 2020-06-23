@@ -24,6 +24,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 CORS(app)
 classifier = TextClassifier.load('models/best-model2.pt')
+modelResult = []
 
 @app.route('/', methods=['GET'])
 def index():
@@ -33,7 +34,8 @@ def index():
 def get_result():
     result = []
     try:
-        result = session['my_result']
+        # result = session['my_result']
+        result = modelResult
     except:
         result = result
     return jsonify(result)
@@ -65,7 +67,8 @@ def input_predict_text():
               
 
 
-    session['my_result'] = result
+    # session['my_result'] = result
+    modelResult = result
     return jsonify(result)
 
 def predict(content, fileExt):

@@ -5,9 +5,9 @@
     <div class="row">
       <div class="col-xxl-8 col-lg-10 col-md-12 mx-auto">
         <h1 class="text-center">Consumer Sentiment Prediction</h1>
-        <form v-on:submit.prevent="addNewTask">
+        <form v-on:submit.prevent="addNewTask" class="vld-parent" ref="formContainer">
           <label for="tasknameinput">Classifying sentiment into positive, negative or neutral based on Transformer Model</label>
-          <input type="file" ref="file" id="file" v-on:change="handleFileUpload()" class="form-control">
+          <input type="file" ref="file" id="file" v-on:change="handleFileUpload()" class="form-control" accept=".txt, .csv">
           <button type="submit" class="btn btn-success btn-block mt-3" v-bind:disabled="disableBtn">
             Submit
           </button>
@@ -110,10 +110,16 @@
 
       </div>
     </div>
+
+    <!-- <div id="app">
+      <circle9></circle9>
+    </div> -->
+
   </div>
 </template>
 
 <script>
+import Vue from 'vue'
 import axios from 'axios'
 import { DxDataGrid, DxSorting, DxFilterRow, DxHeaderFilter, DxSearchPanel, DxFilterPanel, DxPager, DxPaging, DxExport } from 'devextreme-vue/data-grid'
 import DxPieChart, { DxSize, DxSeries, DxLabel, DxConnector } from 'devextreme-vue/pie-chart'
@@ -121,6 +127,10 @@ import { exportDataGrid } from 'devextreme/excel_exporter'
 import { DxCheckBox } from 'devextreme-vue/check-box'
 import ExcelJS from 'exceljs'
 import saveAs from 'file-saver'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/vue-loading.css'
+Vue.use(Loading)
+// import {Circle9} from 'vue-loading-spinner'
 
 export default {
   components: {
@@ -139,6 +149,7 @@ export default {
     DxConnector,
     DxExport,
     DxCheckBox
+    // Circle9
   },
   data () {
     return {
@@ -151,7 +162,8 @@ export default {
       showColumnLines: false,
       showRowLines: true,
       showBorders: true,
-      pageSizes: [5, 10, 20, 40, 100]
+      pageSizes: [5, 10, 20, 40, 100],
+      fullPage: true
     }
   },
   mounted () {
@@ -177,36 +189,45 @@ export default {
       this.$Progress.fail()
     },
     handleFileUpload () {
-      this.file = this.$refs.file.files[0]
+      // this.file = this.$refs.file.files[0]
+      let selectedFile = this.$refs.file.files[0]
+      var idxDot = selectedFile.name.lastIndexOf('.') + 1
+      var extFile = selectedFile.name.substr(idxDot, selectedFile.name.length).toLowerCase()
+      if (extFile === 'txt' || extFile === 'csv') {
+        console.log(extFile)
+        this.file = this.$refs.file.files[0]
+      } else {
+        alert('Only txt and csv files are allowed!')
+      }
     },
-    getTasks () {
-      axios({ method: 'GET', url: '/api/tasks' }).then(
-        result => {
-          console.log(result.data)
-          // this.textClassify = result.data
-          this.results = result.data
-          let pos = 0
-          let neg = 0
-          let neut = 0
-          for (let index = 0; index < result.data.length; index++) {
-            // this.predictions.push({tag: result.data[index].tag})
-            if (result.data[index].tag === 'positive') {
-              pos++
-            } else if (result.data[index].tag === 'negative') {
-              neg++
-            } else if (result.data[index].tag === 'neutral') {
-              neut++
-            }
-          }
-          this.predictionsStats = [{label: 'positive', count: pos}, {label: 'negative', count: neg}, {label: 'neutral', count: neut}]
-          this.file = null
-        },
-        error => {
-          console.error(error)
+    getTasks (result) {
+      this.results = result.data
+      let pos = 0
+      let neg = 0
+      let neut = 0
+      for (let index = 0; index < result.data.length; index++) {
+        // this.predictions.push({tag: result.data[index].tag})
+        if (result.data[index].tag === 'positive') {
+          pos++
+        } else if (result.data[index].tag === 'negative') {
+          neg++
+        } else if (result.data[index].tag === 'neutral') {
+          neut++
         }
-      )
+      }
+      this.predictionsStats = [{label: 'positive', count: pos}, {label: 'negative', count: neg}, {label: 'neutral', count: neut}]
+      this.file = null
     },
     addNewTask () {
+      let loader = this.$loading.show({
+        // Optional parameters
+        container: this.fullPage ? null : this.$refs.formContainer,
+        canCancel: false,
+        onCancel: this.onCancel,
+        isFullPage: true,
+        color: '#00AB00',
+        backgroundColor: '#fffefe'
+      })
       let formData = new FormData()
       formData.append('file', this.file)
 
@@ -220,16 +241,21 @@ export default {
         })
         .then(res => {
           this.taskname = ''
-          this.getTasks()
+          this.getTasks(res)
           console.log(res.data)
           this.$Progress.finish()
+          loader.hide()
         },
         res => {
           this.$Progress.fail()
         })
         .catch(err => {
           console.log(err)
+          loader.hide()
         })
+    },
+    onCancel () {
+      console.log('User cancelled the loader.')
     },
     pointClickHandler (e) {
       this.toggleVisibility(e.target)
