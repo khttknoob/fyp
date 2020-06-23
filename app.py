@@ -9,6 +9,7 @@ import os, datetime
 from werkzeug.utils import secure_filename
 import uuid
 from io import StringIO
+import csv
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
@@ -34,15 +35,12 @@ def get_result():
     try:
         result = session['my_result']
     except:
-        result.append ({'title': 'The text that you pass', 'tag': 'positive, negative or neutral' })
+        result = result
     return jsonify(result)
 
 @app.route('/api/task', methods=['POST'])
 def input_predict_text():
-    # print(request)
     file = request.files['file']
-    textLines = []
-    labels = []
     result = []
     
     
@@ -57,31 +55,36 @@ def input_predict_text():
 
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], newFileName)    )
         
+        
         with open(os.path.join(app.config['UPLOAD_FOLDER'], newFileName), "r") as f:
-            content = f.readlines()
-            id = 0
-            for line in content:
-                # sentences.append(Sentence(line))
-                sentence = Sentence(line)
-                classifier.predict(sentence)
-                text = sentence.to_plain_string()
-                # textLines.append(text)
-                label = sentence.labels[0]
-                # labels.append(label.value)
-                id = id+1
-                prediction = {'ID': id, 'title': text, 'tag': label.value}
-                result.append(prediction)
+            if fileExt == 'txt':
+                content = f.readlines()
+            elif fileExt == 'csv':
+                content = csv.reader(f, delimiter=' ')  
+            result = predict(content, fileExt)
+              
 
-    # sentence = Sentence(title)
-    # # run classifier over sentence
-    # classifier.predict(sentence)
-    # #extract text and its prediction
-    # text = sentence.to_plain_string()
-    # label = sentence.labels[0]
-    # result = {'title' : textLines, 'tag' : labels}
-    # result = {'title' : title, 'tag' : 'called'}
+
     session['my_result'] = result
     return jsonify(result)
+
+def predict(content, fileExt):
+    result = []
+    id = 0
+    for line in content:
+        # sentences.append(Sentence(line))
+        if fileExt == 'csv':
+            line = ' '.join(map(str, line))
+        sentence = Sentence(line)
+        classifier.predict(sentence)
+        text = sentence.to_plain_string()
+        # textLines.append(text)
+        label = sentence.labels[0]
+        # labels.append(label.value)
+        id = id+1
+        prediction = {'ID': id, 'title': text, 'tag': label.value}
+        result.append(prediction)
+    return result
 
 if __name__ == '__main__':
     app.run(debug=True)

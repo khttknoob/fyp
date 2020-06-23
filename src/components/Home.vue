@@ -8,7 +8,7 @@
         <form v-on:submit.prevent="addNewTask">
           <label for="tasknameinput">Classifying sentiment into positive, negative or neutral based on Transformer Model</label>
           <input type="file" ref="file" id="file" v-on:change="handleFileUpload()" class="form-control">
-          <button type="submit" class="btn btn-success btn-block mt-3">
+          <button type="submit" class="btn btn-success btn-block mt-3" v-bind:disabled="disableBtn">
             Submit
           </button>
         </form>
@@ -39,7 +39,6 @@
         :show-column-lines="showColumnLines"
         :show-row-lines="showRowLines"
         :show-borders="showBorders"
-        :row-alternation-enabled="rowAlternationEnabled"
         class="mb-0"
         >
           <DxSearchPanel :visible="true" />
@@ -200,7 +199,7 @@ export default {
             }
           }
           this.predictionsStats = [{label: 'positive', count: pos}, {label: 'negative', count: neg}, {label: 'neutral', count: neut}]
-          // this.predictions = result.data
+          this.file = null
         },
         error => {
           console.error(error)
@@ -222,7 +221,7 @@ export default {
         .then(res => {
           this.taskname = ''
           this.getTasks()
-          console.log(res)
+          console.log(res.data)
           this.$Progress.finish()
         },
         res => {
@@ -259,6 +258,11 @@ export default {
         })
       })
       e.cancel = true
+    }
+  },
+  computed: {
+    disableBtn () {
+      return this.file === null
     }
   }
 }
