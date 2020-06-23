@@ -111,6 +111,19 @@
       </div>
     </div>
 
+    <center class="mt-5">
+      <h2>Words Cloud</h2>
+      <vue-word-cloud
+        style="
+          height: 480px;
+          width: 640px;
+        "
+        :words="wordsFrequencies"
+        :color="([, weight]) => weight > 10 ? 'DeepPink' : weight > 5 ? 'RoyalBlue' : 'Indigo'"
+        font-family="Roboto"
+      />
+    </center>
+
     <!-- <div id="app">
       <circle9></circle9>
     </div> -->
@@ -128,6 +141,7 @@ import { DxCheckBox } from 'devextreme-vue/check-box'
 import ExcelJS from 'exceljs'
 import saveAs from 'file-saver'
 import Loading from 'vue-loading-overlay'
+import VueWordCloud from 'vuewordcloud'
 import 'vue-loading-overlay/dist/vue-loading.css'
 Vue.use(Loading)
 // import {Circle9} from 'vue-loading-spinner'
@@ -148,7 +162,8 @@ export default {
     DxLabel,
     DxConnector,
     DxExport,
-    DxCheckBox
+    DxCheckBox,
+    [VueWordCloud.name]: VueWordCloud
     // Circle9
   },
   data () {
@@ -163,7 +178,8 @@ export default {
       showRowLines: true,
       showBorders: true,
       pageSizes: [5, 10, 20, 40, 100],
-      fullPage: true
+      fullPage: true,
+      wordsFrequencies: []
     }
   },
   mounted () {
@@ -201,21 +217,22 @@ export default {
       }
     },
     getTasks (result) {
-      this.results = result.data
+      this.results = result.data[0].result
       let pos = 0
       let neg = 0
       let neut = 0
-      for (let index = 0; index < result.data.length; index++) {
+      for (let index = 0; index < result.data[0].result.length; index++) {
         // this.predictions.push({tag: result.data[index].tag})
-        if (result.data[index].tag === 'positive') {
+        if (result.data[0].result[index].tag === 'positive') {
           pos++
-        } else if (result.data[index].tag === 'negative') {
+        } else if (result.data[0].result[index].tag === 'negative') {
           neg++
-        } else if (result.data[index].tag === 'neutral') {
+        } else if (result.data[0].result[index].tag === 'neutral') {
           neut++
         }
       }
       this.predictionsStats = [{label: 'positive', count: pos}, {label: 'negative', count: neg}, {label: 'neutral', count: neut}]
+      this.wordsFrequencies = result.data[0].wordsFrequencies
       this.file = null
     },
     addNewTask () {
