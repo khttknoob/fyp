@@ -12,7 +12,11 @@
             Submit
           </button>
         </form>
+      </div>
+    </div>
 
+    <div class="row">
+      <div class="col-xxl-8 col-lg-10 col-md-12 mx-auto">
         <h2 class="mt-5">Results</h2>
         <!-- <table class="table">
           <thead class="thead-dark">
@@ -81,8 +85,12 @@
             />
           </div>
         </div>
+      </div>
+    </div>
 
         <!-- Pie Chart showing class distributions -->
+    <div class="row">
+      <div class="col-xxl-8 col-lg-10 col-md-12 mx-auto">
         <center class="mt-5">
           <DxPieChart
           :data-source="predictionsStats"
@@ -111,22 +119,43 @@
       </div>
     </div>
 
-    <center class="mt-5">
-      <h2>Words Cloud</h2>
-      <vue-word-cloud
-        style="
-          height: 480px;
-          width: 640px;
-        "
-        :words="wordsFrequencies"
-        :color="([, weight]) => weight > 10 ? 'DeepPink' : weight > 5 ? 'RoyalBlue' : 'Indigo'"
-        font-family="Roboto"
-      />
-    </center>
+<!-- Positive Frequencies -->
+    <div class="row">
+      <div class="col-xxl-8 col-lg-8 col-md-6 col-md-12 mx-auto">
+        <center>
+          <h2 class="mt-5 mb-0">Positive Tweets Words Cloud</h2>
+          <vue-word-cloud
+            style="
+            height: 480px;
+            width: 640px;
+            "
+            :words="positiveFrequencies"
+            :color="([, weight]) => weight > 10 ? 'DeepPink' : weight > 5 ? 'RoyalBlue' : 'Indigo'"
+            font-family="Roboto"
+          />
+        </center>
+      </div>
 
-    <!-- <div id="app">
-      <circle9></circle9>
-    </div> -->
+      <div class="col-xxl-4 col-lg-4 col-md-6 col-md-12 mx-auto">
+        <center>
+          <h2 class="mt-5 mb-0">Positive Tweets Frequencies</h2>
+          <table class="table">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Word</th>
+                <th scope="col">Frequency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr  v-for="item in positiveFrequencies" :key="item[0]">
+                <td>{{item[0]}}</td>
+                <td>{{item[1]}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </center>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -179,7 +208,7 @@ export default {
       showBorders: true,
       pageSizes: [5, 10, 20, 40, 100],
       fullPage: true,
-      wordsFrequencies: []
+      positiveFrequencies: []
     }
   },
   mounted () {
@@ -232,7 +261,7 @@ export default {
         }
       }
       this.predictionsStats = [{label: 'positive', count: pos}, {label: 'negative', count: neg}, {label: 'neutral', count: neut}]
-      this.wordsFrequencies = result.data[0].wordsFrequencies
+      this.positiveFrequencies = result.data[0].positiveFrequencies
       this.file = null
     },
     addNewTask () {
