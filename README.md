@@ -2,10 +2,10 @@
 
 ``` bash
 # install python libraries
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # run the server
-python app.py
+python3 app.py
 
 # install dependencies
 npm install
